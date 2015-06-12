@@ -79,12 +79,7 @@ class TheForemanInventory(object):
   def generate_inventory_from_theforeman(self):
     ''' Converts the foreman inventory into ansible '''
 
-    data = self.fetch_data_from_theforeman()
-    self.inventory['all'] = []
-
-    for host in data:
-      self.inventory['all'].append(host['name'])
-
+    for host in self.fetch_data_from_theforeman():
       self.inventory.setdefault(host['hostgroup_name'], []).append(host['name'])
 
 TheForemanInventory()
