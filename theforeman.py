@@ -63,7 +63,7 @@ class TheForemanInventory(object):
     ssl._create_default_https_context = ssl._create_unverified_context
 
     # Build the Foreman query
-    # TODO: Add support for pagination.
+    # TODO: Add support for pagination.
     url = self.theforeman_host + '/api/v2/hosts?per_page=1000'
     base64string = base64.encodestring('%s:%s' % (self.theforeman_username, self.theforeman_password)).replace('\n', '')
 
@@ -84,5 +84,7 @@ class TheForemanInventory(object):
 
     for host in data:
       self.inventory['all'].append(host['name'])
+
+      self.inventory.setdefault(host['hostgroup_name'], []).append(host['name'])
 
 TheForemanInventory()
