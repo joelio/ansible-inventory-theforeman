@@ -47,6 +47,15 @@ class TheForemanInventory(object):
     self.theforeman_username = config.get('theforeman', 'username')
     self.theforeman_password = config.get('theforeman', 'password')
 
+    # Allow verification of the server if required
+    if config.has_option('theforeman', 'cacert'):
+      self.theforeman_cacert = config.get('theforeman', 'cacert')
+
+    # Allow mutual verfication of the client
+    if config.has_option('theforeman', 'cert'):
+      self.theforeman_cert = config.get('theforeman', 'cert')
+      self.theforeman_key = config.get('theforeman', 'key')
+
   def read_cli_args(self):
     ''' Command line argument processing '''
 
@@ -58,13 +67,18 @@ class TheForemanInventory(object):
   def fetch_data_from_theforeman(self):
     ''' Fetch all JSON data from the foreman API '''
 
-    # Temporarily disable SSL
-    # TODO: Remove once theforeman SSL is fixed.
-    ssl._create_default_https_context = ssl._create_unverified_context
+    if hasattr(self, 'theforeman_cacert'):
+      ssl_context = ssl.create_default_context()
+      ssl_context.load_verify_locations(cafile=self.theforeman_cacert)
+      if hasattr(self, 'theforeman_cert'):
+        ssl_context.load_cert_chain(self.theforeman_cert, keyfile=self.theforeman_key)
+    else:
+      ssl_context = None
+      ssl._create_default_https_context = ssl._create_unverified_context
 
     # Build the Foreman query
     # TODO: Add support for pagination.
-    url = self.theforeman_host + '/api/v2/hosts?per_page=1000'
+    url = 'https://' + self.theforeman_host + '/api/v2/hosts?per_page=1000'
     base64string = base64.encodestring('%s:%s' % (self.theforeman_username, self.theforeman_password)).replace('\n', '')
 
     # Fire off the query
@@ -72,7 +86,7 @@ class TheForemanInventory(object):
     request.add_header("Authorization", "Basic %s" % base64string)
 
     # Return the JSON inventory
-    response = urllib2.urlopen(request)
+    response = urllib2.urlopen(request, context=ssl_context)
     data = json.load(response)
     return data['results']
 

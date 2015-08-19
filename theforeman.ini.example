@@ -2,6 +2,9 @@
 #
 
 [theforeman]
-host = https://URL_TO_FOREMAN
+host = forman.domain.tld
 username = username
 password = password
+cacert = /path/to/ssl/cacert (optional)
+cert = /path/to/ssl/cert (optional)
+key = /path/to/ssl/key (optional)
