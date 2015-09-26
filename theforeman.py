@@ -90,6 +90,18 @@ class TheForemanInventory(object):
     data = json.load(response)
     return data['results']
 
+  def get_hostgroups(self, hostgroup):
+    """
+    Given a hostgroup Domain/Group/Role returns a list of super hostgroups
+    (Domain/Component/Role, Domain/Group, Domain), thus we can refer to all hosts
+    in a particular domain, component within a domain etc.
+    """
+    hostgroups = [ hostgroup ]
+    while '/' in hostgroup:
+      hostgroup = hostgroup.rsplit('/', 1)[0]
+      hostgroups.append(hostgroup)
+    return hostgroups
+
   def generate_inventory_from_theforeman(self):
     ''' Converts the foreman inventory into ansible '''
 
@@ -102,7 +114,8 @@ class TheForemanInventory(object):
         self.inventory = {}
     else:
       for host in data:
-        self.inventory.setdefault(host['hostgroup_name'], []).append(host['name'])
+        for hostgroup in self.get_hostgroups(host['hostgroup_name']):
+          self.inventory.setdefault(hostgroup, []).append(host['name'])
         self.inventory['_meta']['hostvars'][host['name']] = host
 
 TheForemanInventory()
