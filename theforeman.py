@@ -114,7 +114,7 @@ class TheForemanInventory(object):
         self.inventory = {}
     else:
       for host in data:
-        for hostgroup in self.get_hostgroups(host['hostgroup_name']):
+        for hostgroup in self.get_hostgroups(host['hostgroup_title']):
           self.inventory.setdefault(hostgroup, []).append(host['name'])
         self.inventory['_meta']['hostvars'][host['name']] = host
 
